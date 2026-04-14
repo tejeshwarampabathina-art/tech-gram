@@ -1,3 +1,3 @@
-web: npm ci && npm run build && pip install -r backend/requirements.txt && gunicorn -w 4 -b 0.0.0.0:$PORT backend.app:app
+web: npm run build && gunicorn -w 4 -b 0.0.0.0:$PORT backend.app:app
 
 
