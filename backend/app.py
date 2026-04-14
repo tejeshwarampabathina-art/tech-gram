@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -6,13 +6,21 @@ import os
 import random
 from datetime import datetime, timedelta
 
-app = Flask(__name__)
+# Get the backend directory
+basedir = os.path.abspath(os.path.dirname(__file__))
+# React dist folder (same level as backend folder)
+dist_folder = os.path.join(os.path.dirname(basedir), 'dist')
+
+# Verify dist exists, otherwise use a fallback
+if not os.path.exists(dist_folder):
+    dist_folder = os.path.join(basedir, 'dist')
+
+app = Flask(__name__, static_folder=dist_folder, static_url_path='/')
 CORS(app) 
 
 # ==========================================
 # LOCAL HOST CONFIGURATION
 # ==========================================
-basedir = os.path.abspath(os.path.dirname(__name__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'techgram_v5.db') # Evolved tracking isolated usernames specifically
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -27,8 +35,17 @@ def build_file_url(filename):
     return f"{request.url_root.rstrip('/')}/uploads/{filename}"
 
 @app.route('/')
-def home():
-    return "🚀 Techgram Backend Gateway is LIVE and structurally secure natively."
+def serve_frontend():
+    return send_file(os.path.join(dist_folder, 'index.html'))
+
+@app.route('/<path:path>')
+def serve_static(path):
+    # First, try to serve the file from dist if it exists
+    file_path = os.path.join(dist_folder, path)
+    if os.path.isfile(file_path):
+        return send_file(file_path)
+    # For any other route (client-side routing), serve index.html
+    return send_file(os.path.join(dist_folder, 'index.html'))
 
 
 # ==========================================
