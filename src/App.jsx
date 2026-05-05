@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Search as SearchIcon, MessageSquare, Send, Plus, User, Menu, X, ArrowRight, ShieldCheck, Code, Settings, Link as LinkIcon, Camera, Check, Compass, Heart, Trash2, Users, Bell } from 'lucide-react';
 import CanvasDots from './CanvasDots';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '';
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 const logRequestError = (context, error) => {
   console.error(context, error);
