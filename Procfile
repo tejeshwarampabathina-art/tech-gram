@@ -1,3 +1,1 @@
-web: npm start
-
-
+web: gunicorn --chdir backend app:app
