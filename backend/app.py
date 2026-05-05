@@ -19,9 +19,13 @@ app = Flask(__name__, static_folder=dist_folder, static_url_path='/')
 CORS(app) 
 
 # ==========================================
-# LOCAL HOST CONFIGURATION
+# DATABASE CONFIGURATION
 # ==========================================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'techgram_v5.db') # Evolved tracking isolated usernames specifically
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url or ('sqlite:///' + os.path.join(basedir, 'techgram_v5.db'))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
