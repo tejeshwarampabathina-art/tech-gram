@@ -540,7 +540,7 @@ const CommunityPage = ({ communities, authId, fetchCommunities, deleteCommunity,
   )
 };
 
-const ProfilePage = ({ authId, sessionUsername, projects, userStats }) => {
+const ProfilePage = ({ authId, sessionUsername, projects, userStats, onLogout }) => {
   const userProjects = projects.filter(p => p.contact_email === authId || p.contact_phone === authId);
   return (
     <div className="page-container" style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -555,7 +555,9 @@ const ProfilePage = ({ authId, sessionUsername, projects, userStats }) => {
           <div className="profiler-top-row">
             <h2 className="profiler-username">@{sessionUsername || 'architect'}</h2>
             <button className="profiler-edit-btn">Edit Profile</button>
-            <button className="profiler-edit-btn"><Settings size={18} /></button>
+            <button className="profiler-edit-btn" onClick={onLogout} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Settings size={18} /> Logout
+            </button>
           </div>
 
           <div className="profiler-stats-row">
@@ -661,6 +663,27 @@ function App() {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const storedAuthId = localStorage.getItem('techgram_authId');
+    const storedUsername = localStorage.getItem('techgram_username');
+    if (storedAuthId && storedUsername) {
+      setAuthId(storedAuthId);
+      setSessionUsername(storedUsername);
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('techgram_authId');
+    localStorage.removeItem('techgram_username');
+    setIsLoggedIn(false);
+    setAuthId('');
+    setSessionUsername('');
+    setUsername('');
+    setOtpSent(false);
+    setOtp('');
+  };
 
   const [projects, setProjects] = useState([]);
   const [communities, setCommunities] = useState([]);
@@ -892,6 +915,8 @@ function App() {
       if (response.ok) {
         setSessionUsername(data.username); // Capture exactly uniquely tracked authenticated globally natively string
         setIsLoggedIn(true);
+        localStorage.setItem('techgram_authId', authId);
+        localStorage.setItem('techgram_username', data.username);
       } else {
         alert(data.message);
       }
@@ -959,7 +984,7 @@ function App() {
       case 'Search': return <SearchPage authId={authId} />;
       case 'Chats': return <ChatPage authId={authId} />;
       case 'Community': return <CommunityPage communities={communities} authId={authId} fetchCommunities={fetchCommunities} deleteCommunity={deleteCommunity} myMemberships={myMemberships} setActiveCommunity={setActiveCommunity} />;
-      case 'Profile': return <ProfilePage authId={authId} sessionUsername={sessionUsername} projects={projects} userStats={userStats} />;
+      case 'Profile': return <ProfilePage authId={authId} sessionUsername={sessionUsername} projects={projects} userStats={userStats} onLogout={handleLogout} />;
       case 'Notifications': return <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} />;
       default: return <HomePage projects={projects} authId={authId} destroyDeployment={destroyDeployment} setIsCreating={setIsCreating} />;
     }
