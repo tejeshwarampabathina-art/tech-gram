@@ -25,8 +25,11 @@ CORS(app)
 # DATABASE CONFIGURATION
 # ==========================================
 db_url = os.environ.get('DATABASE_URL')
-if db_url and db_url.startswith('postgres://'):
-    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+if db_url:
+    if db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+    elif db_url.startswith('mysql://'):
+        db_url = db_url.replace('mysql://', 'mysql+pymysql://', 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url or ('sqlite:///' + os.path.join(basedir, 'techgram_v5.db'))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
