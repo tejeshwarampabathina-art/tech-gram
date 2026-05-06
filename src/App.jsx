@@ -441,6 +441,18 @@ const ChatPage = ({ authId }) => {
     await openChat(activeChat);
   };
 
+  const deleteDM = async (msgId) => {
+    if (!window.confirm("Delete this message?")) return;
+    try {
+      const res = await fetch(apiUrl(`/api/dm/${msgId}`), { method: 'DELETE' });
+      if (res.ok) {
+        setMessages(prev => prev.filter(m => m.id !== msgId));
+      }
+    } catch (error) {
+      logRequestError(`Failed to delete message ${msgId}`, error);
+    }
+  };
+
   return (
     <div className="page-container" style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', gap: '20px', height: '70vh' }}>
       <div style={{ flex: '0 0 300px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', borderRadius: '20px', border: '1px solid var(--border-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -464,8 +476,15 @@ const ChatPage = ({ authId }) => {
             </div>
             <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', scrollBehavior: 'smooth' }}>
               {messages.map(m => (
-                <div key={m.id} style={{ alignSelf: m.sender_auth === authId ? 'flex-end' : 'flex-start', background: m.sender_auth === authId ? 'var(--charcoal-black)' : '#e2e8f0', color: m.sender_auth === authId ? 'white' : 'var(--charcoal-black)', padding: '10px 16px', borderRadius: '12px', maxWidth: '75%' }}>
-                  {m.content}
+                <div key={m.id} style={{ alignSelf: m.sender_auth === authId ? 'flex-end' : 'flex-start', display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '75%' }}>
+                  {m.sender_auth === authId && (
+                    <button onClick={() => deleteDM(m.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '4px', display: 'flex' }} title="Delete Message">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                  <div style={{ background: m.sender_auth === authId ? 'var(--charcoal-black)' : '#e2e8f0', color: m.sender_auth === authId ? 'white' : 'var(--charcoal-black)', padding: '10px 16px', borderRadius: '12px', width: '100%', wordBreak: 'break-word' }}>
+                    {m.content}
+                  </div>
                 </div>
               ))}
               {messages.length === 0 && <div style={{ textAlign: 'center', opacity: 0.5, marginTop: 'auto', marginBottom: 'auto' }}>Initiate encrypted transmission structurally natively.</div>}

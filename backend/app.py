@@ -374,6 +374,16 @@ def send_dm():
     db.session.commit()
     return jsonify(msg.to_dict()), 201
 
+@app.route('/api/dm/<int:msg_id>', methods=['DELETE'])
+def delete_dm(msg_id):
+    msg = DirectMessage.query.get(msg_id)
+    if not msg:
+        return jsonify({"message": "Message not found."}), 404
+        
+    db.session.delete(msg)
+    db.session.commit()
+    return jsonify({"message": "Message deleted successfully."}), 200
+
 @app.route('/api/user/<auth_id>/stats', methods=['GET'])
 def get_user_stats(auth_id):
     followers = InteractionRequest.query.filter_by(type='follow_user', recipient_auth=auth_id, status='accepted').count()
