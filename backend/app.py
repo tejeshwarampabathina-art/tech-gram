@@ -5,6 +5,9 @@ from werkzeug.utils import secure_filename
 import os
 import random
 from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Get the backend directory
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -189,6 +192,29 @@ def generate_otp():
     db.session.add(new_token)
     db.session.commit()
     
+    # Send email if it's an email address
+    if '@' in auth_id:
+        sender_email = os.environ.get('GMAIL_USER')
+        sender_password = os.environ.get('GMAIL_APP_PASSWORD')
+        if sender_email and sender_password:
+            try:
+                msg = MIMEMultipart()
+                msg['From'] = sender_email
+                msg['To'] = auth_id
+                msg['Subject'] = "Your Techgram Verification Code"
+                msg.attach(MIMEText(f"Your Techgram OTP code is: {otp_code}\n\nIt will expire in 5 minutes.", 'plain'))
+                
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+                server.quit()
+                print(f"OTP successfully sent to {auth_id}")
+            except Exception as e:
+                print(f"Error sending email to {auth_id}: {e}")
+        else:
+            print("Email sending skipped: GMAIL_USER or GMAIL_APP_PASSWORD is not set in environment variables.")
+
     return jsonify({ "message": "Authentication Protocol generated.", "dev_code": otp_code }), 200
 
 @app.route('/api/verify-otp', methods=['POST'])
