@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Search as SearchIcon, MessageSquare, Send, Plus, User, Menu, X, ArrowRight, ShieldCheck, Code, Settings, Link as LinkIcon, Camera, Check, Compass, Heart, Trash2, Users, Bell } from 'lucide-react';
 import CanvasDots from './CanvasDots';
 
@@ -6,6 +6,94 @@ const API_BASE_URL = '';
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 const logRequestError = (context, error) => {
   console.error(context, error);
+};
+
+// ==========================================
+// AI ASSISTANT BOT WIDGET
+// ==========================================
+const AIBotWidget = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { text: "Hello! I am the Techgram Assistant. How can I help clarify things for you today?", isBot: true }
+  ]);
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    const userMessage = input.trim();
+    setMessages(prev => [...prev, { text: userMessage, isBot: false }]);
+    setInput("");
+
+    // Rule-based bot logic
+    setTimeout(() => {
+      let botResponse = "I'm not sure about that. I can help explain Communities, Direct Messages, Projects, and Authentication.";
+      const lowerInput = userMessage.toLowerCase();
+      
+      if (lowerInput.includes('community') || lowerInput.includes('guild')) {
+        botResponse = "Communities (or Guilds) allow you to join dedicated spaces for specific engineering topics. You can post updates and chat with members.";
+      } else if (lowerInput.includes('message') || lowerInput.includes('chat') || lowerInput.includes('dm')) {
+        botResponse = "Direct Messages are secure 1-on-1 chats. You must 'Follow' a user to securely message them.";
+      } else if (lowerInput.includes('project') || lowerInput.includes('deploy')) {
+        botResponse = "You can deploy your software or mechanical projects to the Global Feed to showcase your work.";
+      } else if (lowerInput.includes('auth') || lowerInput.includes('login') || lowerInput.includes('otp')) {
+        botResponse = "We use a secure OTP authentication system. An official Gmail address is highly recommended.";
+      } else if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
+        botResponse = "Hello there! How can I assist you with the Techgram application today?";
+      }
+
+      setMessages(prev => [...prev, { text: botResponse, isBot: true }]);
+    }, 600);
+  };
+
+  return (
+    <div className={`ai-bot-widget ${isOpen ? 'open' : ''}`}>
+      {!isOpen && (
+        <button className="ai-bot-trigger" onClick={() => setIsOpen(true)}>
+          <MessageSquare size={24} />
+        </button>
+      )}
+      {isOpen && (
+        <div className="ai-bot-window">
+          <div className="ai-bot-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={20} /> Techgram AI
+            </div>
+            <button className="ai-bot-close" onClick={() => setIsOpen(false)}>
+              <X size={20} />
+            </button>
+          </div>
+          <div className="ai-bot-messages">
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`ai-message ${msg.isBot ? 'bot' : 'user'}`}>
+                {msg.text}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          <form className="ai-bot-input-area" onSubmit={handleSend}>
+            <input 
+              type="text" 
+              placeholder="Ask about Techgram..." 
+              value={input} 
+              onChange={e => setInput(e.target.value)} 
+            />
+            <button type="submit"><Send size={18} /></button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
 };
 
 // ==========================================
@@ -1104,6 +1192,7 @@ function App() {
             <main className="main-content">
               {renderActivePage()}
             </main>
+            <AIBotWidget />
 
             {isCreating && (
               <div className="modal-overlay">
