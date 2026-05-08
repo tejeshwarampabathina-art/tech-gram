@@ -34,7 +34,6 @@ uploads/
 .env
 
 # Build artifacts
-dist/
 build/
 
 # Netlify CLI local state

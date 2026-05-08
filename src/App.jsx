@@ -3,6 +3,7 @@ import { Search as SearchIcon, MessageSquare, Send, Plus, User, Menu, X, ArrowRi
 import CanvasDots from './CanvasDots';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+console.log('Natively verified API Base:', API_BASE_URL);
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 const logRequestError = (context, error) => {
   console.error(context, error);
