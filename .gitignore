@@ -32,3 +32,10 @@ backend/techgram_v5.db
 backend/uploads/
 uploads/
 .env
+
+# Build artifacts
+dist/
+build/
+
+# Netlify CLI local state
+.netlify/
