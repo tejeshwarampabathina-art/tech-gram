@@ -1294,3 +1294,25 @@ h1, h2, h3, h4, h5, h6, .page-title, .top-brand, .profiler-username {
 .ai-bot-input-area button:hover {
   transform: scale(1.1);
 }
+
+/* Deploy Project Modal White Color Overrides */
+.creation-modal h2,
+.creation-modal label,
+.creation-modal span,
+.creation-modal .type-card span,
+.creation-modal .core-input {
+  color: #ffffff !important;
+}
+
+.creation-modal .core-input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.creation-modal .type-card {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.creation-modal .type-card.active {
+  border-color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}

@@ -41,9 +41,18 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 db = SQLAlchemy(app)
 
-# Gemini AI Configuration
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-ai_model = genai.GenerativeModel('gemini-pro')
+# Gemini AI Neural Link Configuration (Resilient Mode)
+AI_AVAILABLE = False
+try:
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    if api_key:
+        genai.configure(api_key=api_key)
+        ai_model = genai.GenerativeModel('gemini-pro')
+        AI_AVAILABLE = True
+    else:
+        print("NEURAL LINK WARNING: GOOGLE_API_KEY missing from environment.")
+except Exception as e:
+    print(f"NEURAL LINK ERROR: {str(e)}")
 
 
 def build_file_url(filename):
@@ -502,8 +511,8 @@ def ai_chat_endpoint():
     if not user_msg:
         return jsonify({"message": "Architecture missing prompt natively."}), 400
     
-    if not os.environ.get("GOOGLE_API_KEY"):
-        return jsonify({"response": "I'm currently in 'Static Mode' because my Gemini Neural Link is missing an API Key. I can still help explain basics: Communities allow group collaboration, DMs are secure 1-on-1 chats, and Projects showcase your engineering work."}), 200
+    if not AI_AVAILABLE:
+        return jsonify({"response": "Neural Link Offline: I'm currently in 'Static Mode' because my Gemini Neural Link is not fully initialized. Please ensure the 'google-generativeai' package is installed and 'GOOGLE_API_KEY' is set in the environment."}), 200
 
     try:
         # Techgram Comprehensive Contextual Prompt
