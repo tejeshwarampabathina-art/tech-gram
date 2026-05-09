@@ -197,7 +197,7 @@ const ActiveCommunityView = ({ communityName, authId, setActiveCommunity }) => {
       </div>
 
       {viewType === 'chat' ? (
-        <div className="chat-interface" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', borderRadius: '20px', border: '1px solid var(--border-color)', height: '500px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="chat-interface" style={{ background: 'var(--bg-card)', backdropFilter: 'blur(10px)', borderRadius: '20px', border: '1px solid var(--border-color)', height: '500px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column-reverse', gap: '10px' }}>
             {chats.map(c => (
               <div key={c.id} style={{ alignSelf: c.sender_auth === authId ? 'flex-end' : 'flex-start', background: c.sender_auth === authId ? 'var(--charcoal-black)' : '#e2e8f0', color: c.sender_auth === authId ? 'white' : 'var(--charcoal-black)', padding: '10px 16px', borderRadius: '12px', maxWidth: '80%' }}>
@@ -207,7 +207,7 @@ const ActiveCommunityView = ({ communityName, authId, setActiveCommunity }) => {
             ))}
             {chats.length === 0 && <div style={{ textAlign: 'center', opacity: 0.5, marginTop: 'auto', marginBottom: 'auto' }}>No secure messages originated yet in {communityName}.</div>}
           </div>
-          <form onSubmit={sendMessage} style={{ display: 'flex', padding: '15px', borderTop: '1px solid var(--border-color)', background: 'white' }}>
+          <form onSubmit={sendMessage} style={{ display: 'flex', padding: '15px', borderTop: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
             <input type="text" value={message} onChange={e => setMessage(e.target.value)} placeholder="Transmit strictly..." style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', marginRight: '10px', outline: 'none' }} required />
             <button type="submit" className="enter-community-btn" style={{ flex: 0, width: '60px', padding: 0 }}><Send size={20} /></button>
           </form>
@@ -556,23 +556,23 @@ const ChatPage = ({ authId }) => {
 
   return (
     <div className="page-container" style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', gap: '20px', height: '70vh' }}>
-      <div style={{ flex: '0 0 300px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', borderRadius: '20px', border: '1px solid var(--border-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: '0 0 300px', background: 'var(--bg-card)', backdropFilter: 'blur(10px)', borderRadius: '20px', border: '1px solid var(--border-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', fontWeight: 700 }}>Secure Connections</div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {contacts.map(c => (
-            <div key={c} onClick={() => openChat(c)} style={{ padding: '15px 20px', cursor: 'pointer', borderBottom: '1px solid #e2e8f0', background: activeChat === c ? '#f1f5f9' : 'transparent', display: 'flex', alignItems: 'center', gap: '10px', transition: 'background 0.2s' }}>
+            <div key={c} onClick={() => openChat(c)} style={{ padding: '15px 20px', cursor: 'pointer', borderBottom: '1px solid var(--border-color)', background: activeChat === c ? '#f1f5f9' : 'transparent', display: 'flex', alignItems: 'center', gap: '10px', transition: 'background 0.2s' }}>
               <User size={24} color={activeChat === c ? 'var(--charcoal-black)' : '#94a3b8'} />
-              <span style={{ fontWeight: activeChat === c ? 700 : 500, color: 'var(--charcoal-black)' }}>{c}</span>
+              <span style={{ fontWeight: activeChat === c ? 700 : 500, color: 'var(--text-primary)' }}>{c}</span>
             </div>
           ))}
           {contacts.length === 0 && <div style={{ padding: '20px', opacity: 0.5, textAlign: 'center' }}>No active verifications. Follow users uniquely globally to explicitly initiate direct links natively.</div>}
         </div>
       </div>
 
-      <div style={{ flex: 1, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', borderRadius: '20px', border: '1px solid var(--border-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, background: 'var(--bg-card)', backdropFilter: 'blur(10px)', borderRadius: '20px', border: '1px solid var(--border-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {activeChat ? (
           <>
-            <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--charcoal-black)' }}>
+            <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)' }}>
               <User size={24} /> {activeChat}
             </div>
             <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', scrollBehavior: 'smooth' }}>
@@ -590,13 +590,13 @@ const ChatPage = ({ authId }) => {
               ))}
               {messages.length === 0 && <div style={{ textAlign: 'center', opacity: 0.5, marginTop: 'auto', marginBottom: 'auto' }}>Initiate encrypted transmission structurally natively.</div>}
             </div>
-            <form onSubmit={sendDM} style={{ display: 'flex', padding: '15px', borderTop: '1px solid var(--border-color)', background: 'white' }}>
+            <form onSubmit={sendDM} style={{ display: 'flex', padding: '15px', borderTop: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
               <input type="text" value={text} onChange={e => setText(e.target.value)} placeholder="Message securely..." style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', marginRight: '10px', outline: 'none' }} />
               <button type="submit" className="enter-community-btn" style={{ flex: 0, width: '60px', padding: 0 }}><Send size={20} /></button>
             </form>
           </>
         ) : (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#94a3b8', gap: '10px' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: 'var(--text-secondary)', gap: '10px' }}>
             <MessageSquare size={48} style={{ opacity: 0.3 }} />
             <h2>Direct Messages</h2>
             <p>Select a secure connection explicitly to initiate strictly internally.</p>
@@ -689,7 +689,7 @@ const ProfilePage = ({ authId, sessionUsername, projects, userStats, onLogout })
           <div className="profiler-bio-section">
             <strong>Techgram Architect</strong>
             <p>Building secure native physics UI infrastructure seamlessly.</p>
-            <p style={{ fontSize: '0.9rem', color: '#94a3b8', margin: '4px 0' }}>Secured locally via: {authId}</p>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: '4px 0' }}>Secured locally via: {authId}</p>
             <a href="#">github.com/{sessionUsername || 'architect'}</a>
           </div>
         </div>
