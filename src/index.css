@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
   --bg-main: #020617; /* Deepest Navy */
@@ -19,14 +19,14 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Press Start 2P', system-ui;
   background-color: var(--bg-main);
   color: var(--text-primary);
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-size: 16px;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: none;
+  text-rendering: pixelated;
+  font-size: 12px;
 }
 
 #root {
@@ -203,13 +203,14 @@ body {
 h1, h2, h3, h4, h5, h6, .page-title, .top-brand, .profiler-username {
   position: relative;
   z-index: 100;
+  font-family: 'Press Start 2P', system-ui;
 }
 
 .main-header h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: 1.8rem;
+  font-weight: 400;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   margin-bottom: 0.5rem;
   text-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
 }
@@ -688,13 +689,13 @@ h1, h2, h3, h4, h5, h6, .page-title, .top-brand, .profiler-username {
 }
 
 .tg-logo-text-new {
-  font-family: 'Inter', sans-serif;
-  font-size: 4.2rem; 
-  font-weight: 800; 
+  font-family: 'Press Start 2P', system-ui;
+  font-size: 2.8rem; 
+  font-weight: 400; 
   color: white;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
   opacity: 0; 
-  filter: blur(10px);
+  filter: blur(5px);
   transform: translateX(30px);
   animation: textReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1.4s forwards;
 }
