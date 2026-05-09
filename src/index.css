@@ -3,13 +3,17 @@
 :root {
   --bg-main: #020617; /* Deepest Navy */
   --bg-card: rgba(15, 23, 42, 0.7); /* Darker glass effect */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
+  --text-primary: #87ceeb; /* Sky Blue */
+  --text-secondary: #87ceeb; /* Sky Blue */
   --charcoal-black: #0f172a;
   --charcoal-black-hover: #1e293b;
   --accent-blue: #3b82f6;
   --accent-cyan: #22d3ee;
-  --border-color: rgba(148, 163, 184, 0.1);
+  --border-color: rgba(135, 206, 235, 0.2);
+}
+
+* {
+  color: #87ceeb;
 }
 
 * {
@@ -62,7 +66,7 @@ body {
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
   box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-  color: var(--text-primary);
+  color: #87ceeb;
   display: flex;
   justify-content: center;
   align-items: center;
