@@ -69,7 +69,7 @@ const CanvasDots = () => {
 
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = '#2A3439'; // The charcoal black color requested
+      ctx.fillStyle = '#22d3ee'; // Vibrant cyan for the new tech theme
 
       // Waves: increase interaction dramatically on touch/click
       const interactionRadius = mouse.isDown ? 280 : 130;
