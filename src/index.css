@@ -16,6 +16,27 @@
   color: #87ceeb;
 }
 
+svg {
+  color: #87ceeb;
+  transition: transform 0.2s;
+}
+
+svg:hover {
+  animation: rainbow-text 1.5s linear infinite;
+  transform: scale(1.2);
+}
+
+@keyframes rainbow-text {
+  0% { color: #ff0000; }
+  15% { color: #ff8900; }
+  30% { color: #ebeb00; }
+  45% { color: #00ff00; }
+  60% { color: #00d1ff; }
+  75% { color: #0000ff; }
+  90% { color: #bd00ff; }
+  100% { color: #ff0000; }
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
