@@ -2,7 +2,9 @@ import { useEffect, useState, useRef } from 'react';
 import { Search as SearchIcon, MessageSquare, Send, Plus, User, Menu, X, ArrowRight, ShieldCheck, Code, Settings, Link as LinkIcon, Camera, Check, Compass, Heart, Trash2, Users, Bell } from 'lucide-react';
 import CanvasDots from './CanvasDots';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:5000'
+  : '';
 console.log('Natively verified API Base:', API_BASE_URL);
 const apiUrl = (path) => `${API_BASE_URL}${path}`;
 const logRequestError = (context, error) => {
@@ -42,17 +44,25 @@ const AIBotWidget = () => {
     setMessages(prev => [...prev, { text: userMessage, isBot: false }]);
     setInput("");
 
+    const targetUrl = apiUrl('/api/ai/chat');
     try {
-      const resp = await fetch(apiUrl('/api/ai/chat'), {
+      const resp = await fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage })
       });
+      
+      if (!resp.ok) {
+        const errorText = await resp.text();
+        throw new Error(`Server returned ${resp.status}: ${errorText.substring(0, 50)}...`);
+      }
+
       const data = await resp.json();
       setMessages(prev => [...prev, { text: data.response, isBot: true }]);
     } catch (err) {
       logRequestError("Neural link failure", err);
-      setMessages(prev => [...prev, { text: "Connection anomaly. I suggest checking the neural link natively.", isBot: true }]);
+      const errorMessage = `Neural Link Failure: ${err.message}. [Target: ${targetUrl}]. Ensure the backend is active and accessible natively.`;
+      setMessages(prev => [...prev, { text: errorMessage, isBot: true }]);
     }
   };
 
