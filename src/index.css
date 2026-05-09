@@ -220,7 +220,7 @@ body {
   font-size: 1.8rem;
   font-style: italic;
   font-weight: 700;
-  color: var(--charcoal-black);
+  color: #87ceeb; /* Sky Blue */
   margin-bottom: 1rem;
   letter-spacing: -0.02em;
 }
@@ -600,7 +600,7 @@ h1, h2, h3, h4, h5, h6, .page-title, .top-brand, .profiler-username {
   padding: 30px 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
 .profiler-top-row { display: flex; align-items: center; gap: 20px; }
-.profiler-username { font-size: 1.5rem; font-weight: 500; color: var(--charcoal-black); }
+.profiler-username { font-size: 1.5rem; font-weight: 500; color: white !important; }
 .profiler-edit-btn { 
   background: rgba(241, 245, 249, 0.8); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;
   padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; color: var(--charcoal-black); transition: background 0.2s;
@@ -608,12 +608,18 @@ h1, h2, h3, h4, h5, h6, .page-title, .top-brand, .profiler-username {
 .profiler-edit-btn:hover { background: #e2e8f0; }
 
 .profiler-stats-row { display: flex; gap: 40px; font-size: 1.1rem; }
-.profiler-stats-row span { color: var(--charcoal-black); }
-.profiler-stats-row strong { font-weight: 700; color: var(--charcoal-black); }
+.profiler-stats-row span { color: white !important; }
+.profiler-stats-row strong { font-weight: 700; color: white !important; }
 
-.profiler-bio-section { font-size: 1rem; line-height: 1.5; color: var(--charcoal-black); }
-.profiler-bio-section p { color: var(--charcoal-black); }
-.profiler-bio-section a { color: #00376b; font-weight: 600; text-decoration: none; }
+.profiler-bio-section { 
+  font-size: 1rem; 
+  line-height: 1.5; 
+  color: white !important; 
+}
+.profiler-bio-section p, .profiler-bio-section strong, .profiler-bio-section span { 
+  color: white !important; 
+}
+.profiler-bio-section a { color: #87ceeb; font-weight: 600; text-decoration: none; }
 
 .profiler-tabs {
   display: flex; justify-content: center; border-top: 1px solid var(--border-color);
