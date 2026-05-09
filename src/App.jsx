@@ -662,7 +662,7 @@ const CommunityPage = ({ communities, authId, fetchCommunities, deleteCommunity,
 
 const ProfilePage = ({ authId, sessionUsername, projects, userStats, onLogout, onUpdateProfilePic }) => {
   const userProjects = projects.filter(p => p.contact_email === authId || p.contact_phone === authId);
-  const fileInputRef = React.useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleAvatarClick = () => fileInputRef.current.click();
 
