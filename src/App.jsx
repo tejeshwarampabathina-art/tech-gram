@@ -46,23 +46,43 @@ const AIBotWidget = () => {
 
     const targetUrl = apiUrl('/api/ai/chat');
     try {
+      // Step 1: Try to reach the Python Backend (Local or Render)
       const resp = await fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage })
       });
       
-      if (!resp.ok) {
-        const errorText = await resp.text();
-        throw new Error(`Server returned ${resp.status}: ${errorText.substring(0, 50)}...`);
-      }
+      if (!resp.ok) throw new Error("Backend Offline");
 
       const data = await resp.json();
       setMessages(prev => [...prev, { text: data.response, isBot: true }]);
     } catch (err) {
-      logRequestError("Neural link failure", err);
-      const errorMessage = `Neural Link Failure: ${err.message}. [Target: ${targetUrl}]. Ensure the backend is active and accessible natively.`;
-      setMessages(prev => [...prev, { text: errorMessage, isBot: true }]);
+      // Step 2: Live Site Fallback - Direct Neural Link to Gemini
+      console.log("Switching to Direct Neural Link fallback...");
+      
+      const GEMINI_KEY = import.meta.env.VITE_GEMINI_KEY || ""; // User should add this to .env
+      
+      if (!GEMINI_KEY) {
+        const errorMsg = "Neural Link Offline: I am unable to reach the Python Backend, and no 'VITE_GEMINI_KEY' was found for a Direct Link. Please ensure your backend is running or add your Gemini Key to .env.";
+        setMessages(prev => [...prev, { text: errorMsg, isBot: true }]);
+        return;
+      }
+
+      try {
+        const geminiResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `You are the Techgram AI Assistant. Techgram is an engineering showcase platform. User asks: ${userMessage}` }] }]
+          })
+        });
+        const geminiData = await geminiResp.json();
+        const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble thinking right now. Please check your Neural Link configuration.";
+        setMessages(prev => [...prev, { text: aiText, isBot: true }]);
+      } catch (geminiErr) {
+        setMessages(prev => [...prev, { text: "Total Connection Failure. All neural pathways are currently offline.", isBot: true }]);
+      }
     }
   };
 
