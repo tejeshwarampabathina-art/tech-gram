@@ -65,8 +65,15 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     auth_id = db.Column(db.String(120), unique=True, nullable=False) 
     username = db.Column(db.String(100), unique=True, nullable=False) # Natively uniquely verified identity parameter
+    profile_pic_url = db.Column(db.String(500), nullable=True)
     is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+    
+    def to_dict(self):
+        return {
+            'id': self.id, 'auth_id': self.auth_id, 'username': self.username,
+            'profile_pic_url': self.profile_pic_url, 'is_verified': self.is_verified
+        }
 
 class OTPToken(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -241,6 +248,26 @@ def securely_verify_otp():
         
     return jsonify({"message": "Authentication failed natively securely."}), 401
 
+@app.route('/api/user/profile-pic', methods=['POST'])
+def upload_profile_pic():
+    auth_id = request.form.get('auth_id')
+    file = request.files.get('file')
+    if not auth_id or not file:
+        return jsonify({"message": "Missing identity or file payload natively."}), 400
+    
+    user = User.query.filter_by(auth_id=auth_id).first()
+    if not user:
+        return jsonify({"message": "User not discovered natively."}), 404
+
+    filename = secure_filename(f"avatar_{user.id}_{int(datetime.now().timestamp())}.png")
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    
+    user.profile_pic_url = build_file_url(filename)
+    db.session.commit()
+    
+    return jsonify({"message": "Avatar synchronized natively!", "url": user.profile_pic_url}), 200
+
 @app.route('/uploads/<filename>')
 def serve_uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
@@ -257,7 +284,7 @@ def search_users():
             User.auth_id.ilike(f'%{q}%')
         )
     ).limit(20).all()
-    return jsonify([{'auth_id': u.auth_id, 'username': u.username, 'is_verified': u.is_verified} for u in results]), 200
+    return jsonify([u.to_dict() for u in results]), 200
 
 # ==========================================
 # PROJECT ENDPOINTS
@@ -391,9 +418,14 @@ def delete_dm(msg_id):
 
 @app.route('/api/user/<auth_id>/stats', methods=['GET'])
 def get_user_stats(auth_id):
+    user = User.query.filter_by(auth_id=auth_id).first()
     followers = InteractionRequest.query.filter_by(type='follow_user', recipient_auth=auth_id, status='accepted').count()
     following = InteractionRequest.query.filter_by(type='follow_user', sender_auth=auth_id, status='accepted').count()
-    return jsonify({"followers": followers, "following": following})
+    return jsonify({
+        "followers": followers, 
+        "following": following,
+        "profile_pic_url": user.profile_pic_url if user else None
+    })
 
 @app.route('/api/user/<auth_id>/memberships', methods=['GET'])
 def get_user_memberships(auth_id):

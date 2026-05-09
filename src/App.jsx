@@ -660,14 +660,42 @@ const CommunityPage = ({ communities, authId, fetchCommunities, deleteCommunity,
   )
 };
 
-const ProfilePage = ({ authId, sessionUsername, projects, userStats, onLogout }) => {
+const ProfilePage = ({ authId, sessionUsername, projects, userStats, onLogout, onUpdateProfilePic }) => {
   const userProjects = projects.filter(p => p.contact_email === authId || p.contact_phone === authId);
+  const fileInputRef = React.useRef(null);
+
+  const handleAvatarClick = () => fileInputRef.current.click();
+
+  const onFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('auth_id', authId);
+    formData.append('file', file);
+
+    try {
+      const resp = await fetch('/api/user/profile-pic', { method: 'POST', body: formData });
+      const data = await resp.json();
+      if (resp.ok) {
+        onUpdateProfilePic(data.url);
+      }
+    } catch (err) {
+      console.error("Avatar sync failed natively.", err);
+    }
+  };
+
   return (
     <div className="page-container" style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={onFileChange} />
       <header className="insta-profile-header">
         <div className="profiler-avatar-container">
-          <div className="profiler-avatar-ring">
-            <User size={65} color="#64748b" />
+          <div className="profiler-avatar-ring" onClick={handleAvatarClick} style={{ cursor: 'pointer' }}>
+            {userStats.profile_pic_url ? (
+              <img src={userStats.profile_pic_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User size={65} color="#64748b" />
+            )}
           </div>
         </div>
 
@@ -1104,7 +1132,17 @@ function App() {
       case 'Search': return <SearchPage authId={authId} />;
       case 'Chats': return <ChatPage authId={authId} />;
       case 'Community': return <CommunityPage communities={communities} authId={authId} fetchCommunities={fetchCommunities} deleteCommunity={deleteCommunity} myMemberships={myMemberships} setActiveCommunity={setActiveCommunity} />;
-      case 'Profile': return <ProfilePage authId={authId} sessionUsername={sessionUsername} projects={projects} userStats={userStats} onLogout={handleLogout} />;
+      case 'Profile':
+        return (
+          <ProfilePage 
+            authId={authId} 
+            sessionUsername={sessionUsername} 
+            projects={projects} 
+            userStats={userStats} 
+            onLogout={handleLogout}
+            onUpdateProfilePic={(url) => setUserStats(prev => ({ ...prev, profile_pic_url: url }))}
+          />
+        );
       case 'Notifications': return <NotificationsPage notifications={notifications} fetchNotifications={fetchNotifications} />;
       default: return <HomePage projects={projects} authId={authId} destroyDeployment={destroyDeployment} setIsCreating={setIsCreating} />;
     }
