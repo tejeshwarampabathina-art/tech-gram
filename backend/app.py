@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import google.generativeai as genai
 
 # Get the backend directory
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -39,6 +40,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 db = SQLAlchemy(app)
+
+# Gemini AI Configuration
+genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+ai_model = genai.GenerativeModel('gemini-pro')
 
 
 def build_file_url(filename):
@@ -489,6 +494,29 @@ def resolve_interaction(req_id):
         req.status = data.get('status')
         db.session.commit()
     return jsonify({"message": "Status updated natively."}), 200
+
+@app.route('/api/ai/chat', methods=['POST'])
+def ai_chat_endpoint():
+    data = request.json
+    user_msg = data.get('message')
+    if not user_msg:
+        return jsonify({"message": "Architecture missing prompt natively."}), 400
+    
+    if not os.environ.get("GOOGLE_API_KEY"):
+        return jsonify({"response": "I'm currently in 'Static Mode' because my Gemini Neural Link is missing an API Key. I can still help explain basics: Communities allow group collaboration, DMs are secure 1-on-1 chats, and Projects showcase your engineering work."}), 200
+
+    try:
+        # Techgram Contextual Prompt
+        system_context = (
+            "You are the official Techgram AI Assistant. Techgram is a professional engineering and software showcase platform. "
+            "Features: 1. Showcase (Feed): Users deploy projects. 2. Communities: Group collaboration and specific tech guilds. "
+            "3. Direct Messages: Secure chats between followed users. 4. OTP Auth: Secure login via Gmail. "
+            "Respond concisely and professionally. User query: "
+        )
+        response = ai_model.generate_content(system_context + user_msg)
+        return jsonify({"response": response.text}), 200
+    except Exception as e:
+        return jsonify({"response": f"Neural Link Error: {str(e)}. I suggest checking my connectivity natively."}), 200
 
 if __name__ == '__main__':
     print("Python/SQL V5 Database utilizing explicit Usernames natively loaded.")

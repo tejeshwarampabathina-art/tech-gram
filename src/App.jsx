@@ -34,7 +34,7 @@ const AIBotWidget = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -42,25 +42,18 @@ const AIBotWidget = () => {
     setMessages(prev => [...prev, { text: userMessage, isBot: false }]);
     setInput("");
 
-    // Rule-based bot logic
-    setTimeout(() => {
-      let botResponse = "I'm not sure about that. I can help explain Communities, Direct Messages, Projects, and Authentication.";
-      const lowerInput = userMessage.toLowerCase();
-      
-      if (lowerInput.includes('community') || lowerInput.includes('guild')) {
-        botResponse = "Communities (or Guilds) allow you to join dedicated spaces for specific engineering topics. You can post updates and chat with members.";
-      } else if (lowerInput.includes('message') || lowerInput.includes('chat') || lowerInput.includes('dm')) {
-        botResponse = "Direct Messages are secure 1-on-1 chats. You must 'Follow' a user to securely message them.";
-      } else if (lowerInput.includes('project') || lowerInput.includes('deploy')) {
-        botResponse = "You can deploy your software or mechanical projects to the Global Feed to showcase your work.";
-      } else if (lowerInput.includes('auth') || lowerInput.includes('login') || lowerInput.includes('otp')) {
-        botResponse = "We use a secure OTP authentication system. An official Gmail address is highly recommended.";
-      } else if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
-        botResponse = "Hello there! How can I assist you with the Techgram application today?";
-      }
-
-      setMessages(prev => [...prev, { text: botResponse, isBot: true }]);
-    }, 600);
+    try {
+      const resp = await fetch(apiUrl('/api/ai/chat'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage })
+      });
+      const data = await resp.json();
+      setMessages(prev => [...prev, { text: data.response, isBot: true }]);
+    } catch (err) {
+      logRequestError("Neural link failure", err);
+      setMessages(prev => [...prev, { text: "Connection anomaly. I suggest checking the neural link natively.", isBot: true }]);
+    }
   };
 
   return (
