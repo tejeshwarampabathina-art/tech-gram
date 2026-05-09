@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import google.generativeai as genai
 
 # Get the backend directory
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -44,6 +43,7 @@ db = SQLAlchemy(app)
 # Gemini AI Neural Link Configuration (Resilient Mode)
 AI_AVAILABLE = False
 try:
+    import google.generativeai as genai
     api_key = os.environ.get("GOOGLE_API_KEY")
     if api_key:
         genai.configure(api_key=api_key)
@@ -51,6 +51,8 @@ try:
         AI_AVAILABLE = True
     else:
         print("NEURAL LINK WARNING: GOOGLE_API_KEY missing from environment.")
+except ImportError:
+    print("NEURAL LINK WARNING: 'google-generativeai' not installed. AI will be in Static Mode.")
 except Exception as e:
     print(f"NEURAL LINK ERROR: {str(e)}")
 
