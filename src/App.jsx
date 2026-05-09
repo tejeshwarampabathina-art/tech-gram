@@ -9,6 +9,12 @@ const logRequestError = (context, error) => {
   console.error(context, error);
 };
 
+const VerifiedBadge = () => (
+  <span className="verified-badge-small" title="Natively Verified Engineer">
+    <Check size={10} strokeWidth={4} />
+  </span>
+);
+
 // ==========================================
 // AI ASSISTANT BOT WIDGET
 // ==========================================
@@ -275,7 +281,10 @@ const HomePage = ({ projects, authId, destroyDeployment, setIsCreating, dispatch
                   <User size={20} color="white" />
                 </div>
                 <div className="insta-user-info">
-                  <strong>{proj.owner_username || proj.contact_email || proj.contact_phone}</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <strong>{proj.owner_username || proj.contact_email || proj.contact_phone}</strong>
+                    {proj.is_verified && <VerifiedBadge />}
+                  </div>
                   <span>{new Date(proj.created_at).toLocaleDateString()}</span>
                 </div>
                 <span className={`badge ${proj.category} ml-auto`}>{proj.category.toUpperCase()}</span>
@@ -431,7 +440,10 @@ const SearchPage = ({ authId }) => {
                 <User size={22} color="white" />
               </div>
               <div className="search-account-info">
-                <strong>@{user.username}</strong>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <strong>@{user.username}</strong>
+                  {user.is_verified && <VerifiedBadge />}
+                </div>
                 <span>{user.auth_id}</span>
               </div>
               {followed.has(user.auth_id) ? (
@@ -1129,31 +1141,72 @@ function App() {
 
         {!isLoggedIn ? (
           <div className="login-overlay">
-            <form className="login-card" onSubmit={otpSent ? verifyOTP : requestOTP}>
-              <div className="icon-wrapper">
-                <ShieldCheck size={36} className="shield-icon" />
-              </div>
-              <h2>Unlock Techgram</h2>
-              <p className="login-subtext">Requires explicit secure username identity.</p>
-
-              <div className="input-group">
-                {!otpSent ? (
-                  <>
-                    <input type="text" placeholder="Designate public '@username'..." value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} className="auth-input" style={{ marginBottom: '14px' }} />
-                    <input type="text" placeholder="Enter Mobile Number or Email..." value={authId} onChange={(e) => setAuthId(e.target.value)} className="auth-input" autoFocus />
-                  </>
-                ) : (
-                  <input type="text" placeholder="Enter secure code..." value={otp} onChange={(e) => setOtp(e.target.value)} className="auth-input otp-mode" autoFocus />
-                )}
+            <form className="login-card ig-style" onSubmit={otpSent ? verifyOTP : requestOTP}>
+              <div className="ig-logo-container">
+                <div className="ig-logo-text">Techgram</div>
               </div>
 
-              <button type="submit" className="auth-btn" disabled={loading}>
-                {loading ? 'Processing...' : (otpSent ? 'Verify Secure Code' : 'Request Authentication Gateway')}
-                {!loading && <ArrowRight size={18} />}
+              {!otpSent ? (
+                <>
+                  <p className="login-subtext">Sign up to see photos and videos from your friends.</p>
+                  <div className="input-group">
+                    <input 
+                      type="text" 
+                      placeholder="Username" 
+                      value={username} 
+                      onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} 
+                      className="ig-input" 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Mobile Number or Email" 
+                      value={authId} 
+                      onChange={(e) => setAuthId(e.target.value)} 
+                      className="ig-input" 
+                      autoFocus 
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="icon-wrapper ig-otp-icon">
+                    <ShieldCheck size={60} strokeWidth={1} />
+                  </div>
+                  <h2 className="ig-heading">Enter Security Code</h2>
+                  <p className="login-subtext" style={{ fontSize: '0.9rem', padding: '0 20px' }}>
+                    Enter the 6-digit code we sent to your account to verify your identity.
+                  </p>
+                  <div className="input-group ig-otp-container">
+                    <input 
+                      type="text" 
+                      placeholder="Security Code" 
+                      value={otp} 
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
+                      className="ig-input otp-mode" 
+                      autoFocus 
+                      maxLength={6}
+                    />
+                  </div>
+                </>
+              )}
+
+              <button type="submit" className="ig-btn" disabled={loading || (otpSent && otp.length < 6)}>
+                {loading ? 'Processing...' : (otpSent ? 'Confirm' : 'Sign Up')}
               </button>
-              {otpSent && (
-                <p className="resend-text" onClick={() => { setOtpSent(false); setOtp(''); }}>
-                  Need another securely explicit internally inherently code mechanically? Go back.
+
+              <div className="ig-divider">
+                <div className="line"></div>
+                <div className="or">OR</div>
+                <div className="line"></div>
+              </div>
+
+              {otpSent ? (
+                <p className="resend-text ig-resend" onClick={() => { setOtpSent(false); setOtp(''); }}>
+                  Didn't get a code? <strong>Go back</strong>
+                </p>
+              ) : (
+                <p className="login-footer-text">
+                  By signing up, you agree to our <strong>Terms</strong>, <strong>Privacy Policy</strong> and <strong>Cookies Policy</strong>.
                 </p>
               )}
             </form>

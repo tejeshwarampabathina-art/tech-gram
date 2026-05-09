@@ -65,6 +65,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     auth_id = db.Column(db.String(120), unique=True, nullable=False) 
     username = db.Column(db.String(100), unique=True, nullable=False) # Natively uniquely verified identity parameter
+    is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
 class OTPToken(db.Model):
@@ -97,7 +98,8 @@ class Project(db.Model):
             'owner_username': self.owner_username or "Engineering Pioneer",
             'github_link': self.github_link, 'preview_link': self.preview_link,
             'video_url': self.video_url, 'model_3d_url': self.model_3d_url,
-            'created_at': self.created_at
+            'created_at': self.created_at,
+            'is_verified': User.query.filter_by(username=self.owner_username).first().is_verified if self.owner_username else False
         }
 
 class DirectMessage(db.Model):
@@ -255,7 +257,7 @@ def search_users():
             User.auth_id.ilike(f'%{q}%')
         )
     ).limit(20).all()
-    return jsonify([{'auth_id': u.auth_id, 'username': u.username} for u in results]), 200
+    return jsonify([{'auth_id': u.auth_id, 'username': u.username, 'is_verified': u.is_verified} for u in results]), 200
 
 # ==========================================
 # PROJECT ENDPOINTS
