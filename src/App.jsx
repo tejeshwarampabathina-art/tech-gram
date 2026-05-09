@@ -1115,24 +1115,28 @@ function App() {
       {showSplash && (
         <div className={`splash-screen ${splashClass}`}>
           <div className="logo-container">
-            <svg className="tg-logo-svg" viewBox="0 0 100 100" width="120" height="120">
+            <svg className="tg-logo-svg" viewBox="0 0 160 80" width="160" height="80">
               <defs>
-                <linearGradient id="tgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="100%" stopColor="#64748b" />
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#00f2fe" />
+                  <stop offset="100%" stopColor="#4facfe" />
                 </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
+                <filter id="logoGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
               </defs>
-              <path className="tg-path" d="M 15,25 L 85,25 M 50,25 L 50,85" stroke="url(#tgGrad)" strokeWidth="14" strokeLinecap="round" fill="none" filter="url(#glow)" />
-              <circle className="tg-dot" cx="50" cy="85" r="7" fill="#2A3439" />
+              <path 
+                className="tg-new-path" 
+                d="M 40,40 C 40,20 60,20 70,30 C 80,40 80,40 90,50 C 100,60 120,60 120,40 C 120,20 100,20 90,30 C 80,40 80,40 70,50 C 60,60 40,60 40,40 Z" 
+                stroke="url(#logoGrad)" 
+                strokeWidth="8" 
+                strokeLinecap="round" 
+                fill="none" 
+                filter="url(#logoGlow)"
+              />
             </svg>
-            <div className="tg-logo-text">TECHGRAM</div>
+            <div className="tg-logo-text-new">TECHGRAM</div>
           </div>
         </div>
       )}
