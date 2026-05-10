@@ -3,14 +3,14 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
-// Firebase configuration — client-side keys are public-safe
+// Firebase configuration using environment variables for security
 const firebaseConfig = {
-  apiKey: "AIzaSyAV1iKL77dpdgrmGsopWJS4LkPVB0f-qK0",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "techgram-7c8a6.firebaseapp.com",
   projectId: "techgram-7c8a6",
   storageBucket: "techgram-7c8a6.firebasestorage.app",
-  messagingSenderId: "5228296079",
-  appId: "1:5228296079:web:dcb4caf1162e2104d018a0"
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase

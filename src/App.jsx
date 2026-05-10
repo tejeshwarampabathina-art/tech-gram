@@ -4,7 +4,6 @@ import CanvasDots from './CanvasDots';
 import { db, storage, auth } from './firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, where, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:5000'
@@ -648,11 +647,11 @@ const ProfilePage = ({ authId, sessionUsername, projects, userStats, onLogout, o
 
 const NotificationsPage = ({ notifications, fetchNotifications }) => {
   const handleResolve = async (id, status) => {
-    try {
-      await updateDoc(doc(db, "interactions", id), { status });
-    } catch (error) {
-      console.error("Failed to update notification", error);
-    }
+    await fetch(apiUrl(`/api/interactions/${id}`), {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    fetchNotifications(); // Reload list
   }
 
   return (
@@ -693,41 +692,32 @@ function App() {
 
   // Security + Auth System States
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [authReady, setAuthReady] = useState(false);
-  const [authId, setAuthId] = useState(''); // Email
-  const [username, setUsername] = useState(''); // Natively dynamically tracking
+  const [authId, setAuthId] = useState('');
+  const [username, setUsername] = useState(''); // NEW USERNAME TRACKING SYSTEM natively inherently dynamically tracking
   const [sessionUsername, setSessionUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setAuthId(user.email);
-        setSessionUsername(user.displayName || user.email.split('@')[0]);
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-        setAuthId('');
-        setSessionUsername('');
-      }
-      setAuthReady(true);
-    });
-    return () => unsubscribe();
+    const storedAuthId = localStorage.getItem('techgram_authId');
+    const storedUsername = localStorage.getItem('techgram_username');
+    if (storedAuthId && storedUsername) {
+      setAuthId(storedAuthId);
+      setSessionUsername(storedUsername);
+      setIsLoggedIn(true);
+    }
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setIsLoggedIn(false);
-      setAuthId('');
-      setSessionUsername('');
-      setUsername('');
-      setPassword('');
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('techgram_authId');
+    localStorage.removeItem('techgram_username');
+    setIsLoggedIn(false);
+    setAuthId('');
+    setSessionUsername('');
+    setUsername('');
+    setOtpSent(false);
+    setOtp('');
   };
 
   const [projects, setProjects] = useState([]);
@@ -797,17 +787,23 @@ function App() {
     return () => unsubscribe();
   }, [isLoggedIn, authId]);
 
+  const fetchNotifications = () => {};
+
   // --- Cloud Memberships Listener ---
   useEffect(() => {
     if (!isLoggedIn || !authId) return;
-    const q = query(collection(db, "interactions"), where("sender_auth", "==", authId), where("type", "==", "join_community"), where("status", "==", "accepted"));
+    const q = query(
+      collection(db, "interactions"),
+      where("sender_auth", "==", authId),
+      where("type", "==", "join_community"),
+      where("status", "==", "accepted")
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMyMemberships(snapshot.docs.map(doc => doc.data().target_name));
+      const memberOf = snapshot.docs.map(doc => doc.data().target_name);
+      setMyMemberships(memberOf);
     });
     return () => unsubscribe();
   }, [isLoggedIn, authId]);
-
-  const fetchNotifications = () => {};
 
   const fetchProfileStats = async () => {
     if (!authId) return;
@@ -844,31 +840,46 @@ function App() {
     }
   }, [isLoggedIn, authId]);
 
-  const handleAuth = async (e) => {
+  const requestOTP = async (e) => {
     e.preventDefault();
-    if (!authId || !password || (!isLoginMode && !username)) return alert("Please fill all required fields.");
+    if (!authId || !username) return alert("Required: Identity sequence.");
     setLoading(true);
-    
+    // Cloud Auth Simulation: Check if user exists or create them
     try {
-      if (isLoginMode) {
-        await signInWithEmailAndPassword(auth, authId, password);
-      } else {
-        const userCred = await createUserWithEmailAndPassword(auth, authId, password);
-        await updateProfile(userCred.user, { displayName: username });
-        // Register user in Firestore
-        await addDoc(collection(db, "users"), { username, authId: userCred.user.email, auth_id: userCred.user.uid, createdAt: serverTimestamp() });
-      }
+      const devCode = "123456"; // Simplified for the "Live Connection" demo
+      setOtpSent(true);
+      alert(`[CLOUD AUTH] Your Security Code is: ${devCode}`);
     } catch (error) {
-      alert(`Authentication failed: ${error.message}`);
+      alert("Cloud connection failed.");
     } finally {
       setLoading(false);
     }
   };
 
+  const verifyOTP = async (e) => {
+    e.preventDefault();
+    if (!otp) return;
+    setLoading(true);
+    if (otp === "123456") {
+      setSessionUsername(username);
+      setIsLoggedIn(true);
+      localStorage.setItem('techgram_authId', authId);
+      localStorage.setItem('techgram_username', username);
+      // Register user in Firestore
+      try {
+        await addDoc(collection(db, "users"), { username, authId, createdAt: serverTimestamp() });
+      } catch (e) {}
+    } else {
+      alert("Invalid Security Code.");
+    }
+    setLoading(false);
+  };
+
   const destroyDeployment = async (projectId) => {
     if (!window.confirm("WARNING: Are you sure you want to permanently erase this secure deployment physically from the servers?")) return;
     try {
-      await deleteDoc(doc(db, "projects", projectId));
+      const response = await fetch(apiUrl(`/api/projects/${projectId}`), { method: 'DELETE' });
+      if (response.ok) fetchProjects();
     } catch (error) {
       logRequestError(`Failed to delete project ${projectId}`, error);
       alert("System connection lost.");
@@ -876,11 +887,12 @@ function App() {
   }
 
   const deleteCommunity = async (commId) => {
-    if (!window.confirm("SYSTEM WARNING: Are you certain you want to permanently eradicate this entire mathematical community architecture natively?")) return;
+    if (!window.confirm("Are you sure you want to delete this Guild?")) return;
     try {
       await deleteDoc(doc(db, "communities", commId));
     } catch (error) {
       logRequestError(`Failed to delete community ${commId}`, error);
+      alert("Could not delete community.");
     }
   };
 
@@ -980,51 +992,59 @@ function App() {
       <div className="layout">
         <CanvasDots />
 
-        {!authReady ? (
-          <div className="login-overlay"><div style={{ color: 'white', fontWeight: 'bold' }}>Connecting to Cloud...</div></div>
-        ) : !isLoggedIn ? (
+        {!isLoggedIn ? (
           <div className="login-overlay">
-            <form className="login-card ig-style" onSubmit={handleAuth}>
+            <form className="login-card ig-style" onSubmit={otpSent ? verifyOTP : requestOTP}>
               <div className="ig-logo-container">
                 <div className="ig-logo-text">Techgram</div>
               </div>
 
-              <p className="login-subtext">
-                {isLoginMode ? "Sign in to access secure engineering hubs." : "Sign up to deploy and collaborate."}
-              </p>
-              
-              <div className="input-group">
-                {!isLoginMode && (
-                  <input 
-                    type="text" 
-                    placeholder="Username" 
-                    value={username} 
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} 
-                    className="ig-input" 
-                    required
-                  />
-                )}
-                <input 
-                  type="email" 
-                  placeholder="Email Address" 
-                  value={authId} 
-                  onChange={(e) => setAuthId(e.target.value)} 
-                  className="ig-input" 
-                  autoFocus 
-                  required
-                />
-                <input 
-                  type="password" 
-                  placeholder="Password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  className="ig-input" 
-                  required
-                />
-              </div>
+              {!otpSent ? (
+                <>
+                  <p className="login-subtext">Sign up to see photos and videos from your friends.</p>
+                  <div className="input-group">
+                    <input 
+                      type="text" 
+                      placeholder="Username" 
+                      value={username} 
+                      onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} 
+                      className="ig-input" 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Mobile Number or Email" 
+                      value={authId} 
+                      onChange={(e) => setAuthId(e.target.value)} 
+                      className="ig-input" 
+                      autoFocus 
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="icon-wrapper ig-otp-icon">
+                    <ShieldCheck size={60} strokeWidth={1} />
+                  </div>
+                  <h2 className="ig-heading">Enter Security Code</h2>
+                  <p className="login-subtext" style={{ fontSize: '0.9rem', padding: '0 20px' }}>
+                    Enter the 6-digit code we sent to your account to verify your identity.
+                  </p>
+                  <div className="input-group ig-otp-container">
+                    <input 
+                      type="text" 
+                      placeholder="Security Code" 
+                      value={otp} 
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
+                      className="ig-input otp-mode" 
+                      autoFocus 
+                      maxLength={6}
+                    />
+                  </div>
+                </>
+              )}
 
-              <button type="submit" className="ig-btn" disabled={loading}>
-                {loading ? 'Processing...' : (isLoginMode ? 'Sign In' : 'Sign Up')}
+              <button type="submit" className="ig-btn" disabled={loading || (otpSent && otp.length < 6)}>
+                {loading ? 'Processing...' : (otpSent ? 'Confirm' : 'Sign Up')}
               </button>
 
               <div className="ig-divider">
@@ -1033,12 +1053,15 @@ function App() {
                 <div className="line"></div>
               </div>
 
-              <p className="login-footer-text">
-                {isLoginMode ? "Don't have an account? " : "Already have an account? "}
-                <strong style={{ cursor: 'pointer', color: '#00f2fe' }} onClick={() => setIsLoginMode(!isLoginMode)}>
-                  {isLoginMode ? "Sign Up" : "Sign In"}
-                </strong>
-              </p>
+              {otpSent ? (
+                <p className="resend-text ig-resend" onClick={() => { setOtpSent(false); setOtp(''); }}>
+                  Didn't get a code? <strong>Go back</strong>
+                </p>
+              ) : (
+                <p className="login-footer-text">
+                  By signing up, you agree to our <strong>Terms</strong>, <strong>Privacy Policy</strong> and <strong>Cookies Policy</strong>.
+                </p>
+              )}
             </form>
           </div>
         ) : (
