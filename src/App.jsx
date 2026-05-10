@@ -172,7 +172,7 @@ const ActiveCommunityView = ({ communityName, authId, setActiveCommunity }) => {
     <div className="page-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
       <header className="main-header space-between" style={{ marginBottom: '20px' }}>
         <div>
-          <h1 className="page-title">{communityName}</h1>
+          <h1 className="page-title" style={{ color: 'cyan' }}>{communityName}</h1>
           <p className="subtitle">Secure Internal Guild Communications.</p>
         </div>
         <button className="del-btn-icon" onClick={() => setActiveCommunity(null)}>Leave Interface</button>
@@ -516,7 +516,7 @@ const CommunityPage = ({ communities, authId, fetchCommunities, deleteCommunity,
             <div style={{ background: "rgba(42, 52, 57, 0.1)", padding: "16px", borderRadius: "50%" }}>
               <Users size={32} color="var(--charcoal-black)" />
             </div>
-            <h3>{c.name}</h3>
+            <h3 style={{ color: 'cyan' }}>{c.name}</h3>
             {c.admin_auth === authId ? (
               <div style={{ display: 'flex', width: '100%', gap: '10px' }}>
                 <button className="enter-community-btn" onClick={() => setActiveCommunity(c.name)}>Enter Community</button>
