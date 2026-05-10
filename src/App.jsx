@@ -647,11 +647,11 @@ const ProfilePage = ({ authId, sessionUsername, projects, userStats, onLogout, o
 
 const NotificationsPage = ({ notifications, fetchNotifications }) => {
   const handleResolve = async (id, status) => {
-    await fetch(apiUrl(`/api/interactions/${id}`), {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
-    });
-    fetchNotifications(); // Reload list
+    try {
+      await updateDoc(doc(db, "interactions", id), { status });
+    } catch (error) {
+      console.error("Failed to update notification", error);
+    }
   }
 
   return (
@@ -787,6 +787,16 @@ function App() {
     return () => unsubscribe();
   }, [isLoggedIn, authId]);
 
+  // --- Cloud Memberships Listener ---
+  useEffect(() => {
+    if (!isLoggedIn || !authId) return;
+    const q = query(collection(db, "interactions"), where("sender_auth", "==", authId), where("type", "==", "join_community"), where("status", "==", "accepted"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMyMemberships(snapshot.docs.map(doc => doc.data().target_name));
+    });
+    return () => unsubscribe();
+  }, [isLoggedIn, authId]);
+
   const fetchNotifications = () => {};
 
   const fetchProfileStats = async () => {
@@ -816,104 +826,12 @@ function App() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      let ignore = false;
-
-      const initializeAppData = async () => {
-        // Projects are handled by the real-time listener above
-
-        try {
-          const res = await fetch(apiUrl('/api/communities'));
-          const data = await res.json();
-          if (!ignore) {
-            setCommunities(data);
-          }
-        } catch (error) {
-          logRequestError('Failed to load communities during login', error);
-        }
-
-        if (!authId) {
-          return;
-        }
-
-        try {
-          const res = await fetch(apiUrl(`/api/interactions/${authId}`));
-          const data = await res.json();
-          if (!ignore) {
-            setNotifications(data);
-          }
-        } catch (error) {
-          logRequestError(`Failed to load notifications during login for ${authId}`, error);
-        }
-
-        try {
-          const res = await fetch(apiUrl(`/api/user/${authId}/stats`));
-          const data = await res.json();
-          if (!ignore) {
-            setUserStats(data);
-          }
-        } catch (error) {
-          logRequestError(`Failed to load stats during login for ${authId}`, error);
-        }
-
-        try {
-          const res = await fetch(apiUrl(`/api/user/${authId}/memberships`));
-          const data = await res.json();
-          if (!ignore) {
-            setMyMemberships(data.communities || []);
-          }
-        } catch (error) {
-          logRequestError(`Failed to load memberships during login for ${authId}`, error);
-        }
-      };
-
-      void initializeAppData();
-
       const isEmail = authId.includes('@');
       setForm(prev => ({
         ...prev, contactPhone: isEmail ? '' : authId, contactEmail: isEmail ? authId : '',
         emailVerified: isEmail ? true : false, phoneVerified: isEmail ? false : true
       }));
-
-      return () => {
-        ignore = true;
-      };
     }
-  }, [isLoggedIn, authId]);
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-
-    let ignore = false;
-    const pollUserState = async () => {
-      try {
-        const res = await fetch(apiUrl(`/api/interactions/${authId}`));
-        const data = await res.json();
-        if (!ignore) {
-          setNotifications(data);
-        }
-      } catch (error) {
-        logRequestError(`Failed to refresh notifications for ${authId}`, error);
-      }
-
-      try {
-        const res = await fetch(apiUrl(`/api/user/${authId}/memberships`));
-        const data = await res.json();
-        if (!ignore) {
-          setMyMemberships(data.communities || []);
-        }
-      } catch (error) {
-        logRequestError(`Failed to refresh memberships for ${authId}`, error);
-      }
-    };
-
-    const interval = setInterval(() => {
-      void pollUserState();
-    }, 5000);
-
-    return () => {
-      ignore = true;
-      clearInterval(interval);
-    };
   }, [isLoggedIn, authId]);
 
   const requestOTP = async (e) => {
@@ -954,8 +872,7 @@ function App() {
   const destroyDeployment = async (projectId) => {
     if (!window.confirm("WARNING: Are you sure you want to permanently erase this secure deployment physically from the servers?")) return;
     try {
-      const response = await fetch(apiUrl(`/api/projects/${projectId}`), { method: 'DELETE' });
-      if (response.ok) fetchProjects();
+      await deleteDoc(doc(db, "projects", projectId));
     } catch (error) {
       logRequestError(`Failed to delete project ${projectId}`, error);
       alert("System connection lost.");
@@ -965,8 +882,7 @@ function App() {
   const deleteCommunity = async (commId) => {
     if (!window.confirm("SYSTEM WARNING: Are you certain you want to permanently eradicate this entire mathematical community architecture natively?")) return;
     try {
-      const response = await fetch(apiUrl(`/api/communities/${commId}`), { method: 'DELETE' });
-      if (response.ok) fetchCommunities();
+      await deleteDoc(doc(db, "communities", commId));
     } catch (error) {
       logRequestError(`Failed to delete community ${commId}`, error);
     }
