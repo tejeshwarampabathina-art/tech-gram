@@ -175,7 +175,7 @@ const ActiveCommunityView = ({ communityName, authId, setActiveCommunity }) => {
           <h1 className="page-title" style={{ color: 'cyan' }}>{communityName}</h1>
           <p className="subtitle">Secure Internal Guild Communications.</p>
         </div>
-        <button className="del-btn-icon" onClick={() => setActiveCommunity(null)}>Leave Interface</button>
+        <button onClick={() => setActiveCommunity(null)} style={{ background: '#ffffff', color: '#000000', padding: '10px 20px', border: '1px solid #ccc', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Leave Interface</button>
       </header>
 
       <div className="profiler-tabs" style={{ marginBottom: '20px' }}>
@@ -184,18 +184,31 @@ const ActiveCommunityView = ({ communityName, authId, setActiveCommunity }) => {
       </div>
 
       {viewType === 'chat' ? (
-        <div className="chat-interface">
-          <div className="chat-messages" style={{ height: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column-reverse' }}>
+        <div className="chat-interface-distinct" style={{ fontFamily: 'Arial, sans-serif', background: '#ffffff', borderRadius: '15px', border: '2px solid cyan', padding: '15px', height: '500px', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0, 242, 254, 0.2)' }}>
+          <div className="chat-header" style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '10px', fontWeight: 'bold', color: '#333' }}>
+            {communityName} - Secure Live Chat
+          </div>
+          <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column-reverse', padding: '10px' }}>
             {chats.map(c => (
-              <div key={c.id} className={`chat-bubble ${c.sender_auth === authId ? 'sent' : 'received'}`}>
-                <small>{c.sender_auth}</small>
-                <p>{c.content}</p>
+              <div key={c.id} style={{
+                fontFamily: 'Arial, sans-serif',
+                alignSelf: c.sender_auth === authId ? 'flex-end' : 'flex-start',
+                background: c.sender_auth === authId ? '#00f2fe' : '#f1f5f9',
+                color: c.sender_auth === authId ? '#ffffff' : '#334155',
+                padding: '12px 18px',
+                borderRadius: c.sender_auth === authId ? '15px 15px 0 15px' : '15px 15px 15px 0',
+                margin: '8px 0',
+                maxWidth: '75%',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+              }}>
+                <small style={{ display: 'block', fontSize: '0.75rem', opacity: 0.8, marginBottom: '5px' }}>{c.sender_auth}</small>
+                <p style={{ margin: 0, fontSize: '1rem', lineHeight: '1.4' }}>{c.content}</p>
               </div>
             ))}
           </div>
-          <form onSubmit={sendMessage} className="chat-input">
-            <input value={message} onChange={e => setMessage(e.target.value)} placeholder="Transmit..." />
-            <button type="submit"><Send size={20} /></button>
+          <form onSubmit={sendMessage} style={{ display: 'flex', marginTop: '10px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
+            <input value={message} onChange={e => setMessage(e.target.value)} placeholder="Type a message..." style={{ flex: 1, fontFamily: 'Arial, sans-serif', padding: '12px 15px', borderRadius: '25px', border: '1px solid #cbd5e1', outline: 'none', marginRight: '10px', fontSize: '1rem', color: '#333' }} />
+            <button type="submit" style={{ background: '#00f2fe', color: 'white', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0, 242, 254, 0.3)' }}><Send size={20} /></button>
           </form>
         </div>
       ) : (
@@ -207,17 +220,16 @@ const ActiveCommunityView = ({ communityName, authId, setActiveCommunity }) => {
   );
 };
 
-const ChatPage = ({ authId }) => {
+const ChatPage = ({ authId, activeChat, setActiveChat }) => {
   const [contacts, setContacts] = useState([]);
-  const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, "projects")); // Using project owners as contacts for now
+    const q = query(collection(db, "users"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const owners = [...new Set(snapshot.docs.map(doc => doc.data().owner_auth))].filter(id => id !== authId);
-      setContacts(owners);
+      const allUsers = snapshot.docs.map(doc => doc.data().authId || doc.data().auth_id).filter(id => id && id !== authId);
+      setContacts([...new Set(allUsers)]);
     });
     return () => unsubscribe();
   }, [authId]);
@@ -370,7 +382,7 @@ const HomePage = ({ projects, authId, destroyDeployment, setIsCreating, dispatch
   );
 };
 
-const SearchPage = ({ authId }) => {
+const SearchPage = ({ authId, onMessageUser }) => {
   const [filter, setFilter] = useState('accounts');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -460,6 +472,7 @@ const SearchPage = ({ authId }) => {
               ) : (
                 <button className="follow-action-btn" onClick={() => handleFollow(user)}>Follow</button>
               )}
+              <button className="follow-action-btn" onClick={() => onMessageUser(user.auth_id)} style={{ background: '#00f2fe', color: 'white' }}>Message</button>
             </div>
           ))}
         </div>
@@ -710,6 +723,7 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [communities, setCommunities] = useState([]);
   const [activeCommunity, setActiveCommunity] = useState(null);
+  const [activeGlobalChat, setActiveGlobalChat] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [userStats, setUserStats] = useState({ followers: 0, following: 0 });
   const [myMemberships, setMyMemberships] = useState([]);
@@ -1002,8 +1016,8 @@ function App() {
 
     switch (activeTab) {
       case 'Home': return <HomePage projects={projects} authId={authId} destroyDeployment={destroyDeployment} setIsCreating={setIsCreating} dispatchFollow={dispatchFollow} />;
-      case 'Search': return <SearchPage authId={authId} />;
-      case 'Chats': return <ChatPage authId={authId} />;
+      case 'Search': return <SearchPage authId={authId} onMessageUser={(id) => { setActiveGlobalChat(id); setActiveTab('Chats'); }} />;
+      case 'Chats': return <ChatPage authId={authId} activeChat={activeGlobalChat} setActiveChat={setActiveGlobalChat} />;
       case 'Community': return <CommunityPage communities={communities} authId={authId} fetchCommunities={fetchCommunities} deleteCommunity={deleteCommunity} myMemberships={myMemberships} setActiveCommunity={setActiveCommunity} />;
       case 'Profile':
         return (
